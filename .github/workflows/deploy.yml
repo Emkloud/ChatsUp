@@ -47,6 +47,11 @@ jobs:
         working-directory: ${{ env.TF_WORKDIR }}
         run: terraform init -input=false
 
+      - name: Terraform Apply (provision ECS/ALB/EFS)
+        working-directory: ${{ env.TF_WORKDIR }}
+        run: |
+          terraform apply -auto-approve -input=false
+
       - name: Put JWT secret into SSM
         env:
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -65,3 +70,13 @@ jobs:
         run: |
           echo "API IP: $(terraform output -raw api_public_ip)"
           echo "TURN IP: $(terraform output -raw turn_public_ip)"
+
+      - name: Force new ECS deployment
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          # Read ECS identifiers from Terraform state/outputs
+          CLUSTER=$(cd ${{ env.TF_WORKDIR }} && terraform output -raw ecs_cluster_id)
+          SERVICE=$(cd ${{ env.TF_WORKDIR }} && terraform output -raw ecs_service_name)
+          echo "Updating ECS service $SERVICE in cluster $CLUSTER"
+          aws ecs update-service --cluster "$CLUSTER" --service "$SERVICE" --force-new-deployment --region "$AWS_REGION"

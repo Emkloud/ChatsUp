@@ -127,3 +127,25 @@ variable "ssm_param_database_url" {
   type    = string
   default = "/webrtc/DATABASE_URL"
 }
+
+# ECS (Fargate) settings
+variable "ecs_cluster_name" {
+  type    = string
+  default = "webrtc-api-cluster"
+}
+variable "ecs_service_name" {
+  type    = string
+  default = "webrtc-api-svc"
+}
+variable "ecs_cpu" {
+  type    = number
+  default = 512 # 0.5 vCPU
+}
+variable "ecs_memory" {
+  type    = number
+  default = 1024 # 1 GB
+}
+variable "ecs_desired_count" {
+  type    = number
+  default = 1
+}
