@@ -20,9 +20,17 @@ if (!fs.existsSync(uploadDir)) {
 const app = express();
 const server = http.createServer(app);
 const corsOrigin = process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : '*';
+const corsOptions = {
+  origin: corsOrigin,
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: false,
+  optionsSuccessStatus: 204,
+};
 const io = new Server(server, { cors: { origin: corsOrigin } });
 
-app.use(cors({ origin: corsOrigin }));
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(uploadDir));
 
