@@ -43,22 +43,9 @@ jobs:
         with:
           terraform_version: 1.5.7
 
-      - name: Terraform Init
+      - name: Terraform Init (no apply)
         working-directory: ${{ env.TF_WORKDIR }}
         run: terraform init -input=false
-
-      - name: Terraform Apply
-        working-directory: ${{ env.TF_WORKDIR }}
-        env:
-          TF_VAR_aws_region: us-east-1
-          TF_VAR_key_name: chats
-          TF_VAR_db_name: chatsapp
-          TF_VAR_db_username: chatsadmin
-          TF_VAR_db_password: Ch4tsApp-Prod123!
-          TF_VAR_turn_username: admin
-          TF_VAR_turn_password: admin123
-        run: |
-          terraform apply -auto-approve -input=false
 
       - name: Put JWT secret into SSM
         env:
