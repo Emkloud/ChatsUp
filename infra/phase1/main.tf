@@ -126,7 +126,7 @@ resource "aws_instance" "api" {
               aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $${ACCOUNT_ID}.dkr.ecr.${var.aws_region}.amazonaws.com
 
               # Pull latest server image
-              REPO=${aws_ecr_repository.server.repository_url}
+              REPO=${data.aws_ecr_repository.server.repository_url}
               docker pull $${REPO}:latest || true
 
               # Fetch env from SSM
