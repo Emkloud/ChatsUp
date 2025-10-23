@@ -1,16 +1,6 @@
-# GitHub OIDC provider and deploy role for CI to run Terraform and push to ECR
-# NOTE: You must set var.github_org and var.github_repo to your repo owner/name.
-
-resource "aws_iam_openid_connect_provider" "github" {
+# GitHub OIDC provider (read existing)
+data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
-
-  client_id_list = [
-    "sts.amazonaws.com"
-  ]
-
-  thumbprint_list = [
-    "6938fd4d98bab03faadb97b34396831e3780aea1"
-  ]
 }
 
 resource "aws_iam_role" "gha_terraform_deployer" {
@@ -22,7 +12,7 @@ resource "aws_iam_role" "gha_terraform_deployer" {
       {
         Effect = "Allow",
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
+          Federated = data.aws_iam_openid_connect_provider.github.arn
         },
         Action = "sts:AssumeRoleWithWebIdentity",
         Condition = {
@@ -48,7 +38,19 @@ resource "aws_iam_role_policy" "gha_policy" {
     Statement = [
       {
         Effect   = "Allow",
-        Action   = ["ecr:GetAuthorizationToken", "ecr:BatchCheckLayerAvailability", "ecr:CompleteLayerUpload", "ecr:UploadLayerPart", "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:BatchGetImage", "ecr:GetDownloadUrlForLayer", "ecr:DescribeRepositories", "ecr:CreateRepository"],
+        Action   = [
+          "ecr:GetAuthorizationToken",
+          "ecr:BatchCheckLayerAvailability",
+          "ecr:CompleteLayerUpload",
+          "ecr:UploadLayerPart",
+          "ecr:InitiateLayerUpload",
+          "ecr:PutImage",
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:DescribeRepositories",
+          "ecr:CreateRepository",
+          "ecr:ListTagsForResource"
+        ],
         Resource = "*"
       },
       {
@@ -62,8 +64,10 @@ resource "aws_iam_role_policy" "gha_policy" {
           "cloudwatch:*",
           "cloudformation:DescribeStacks",
           "cloudformation:DescribeStackResources",
-          "rds:DescribeDBInstances",
-          "rds:DescribeDBSubnetGroups"
+          "rds:*",
+          "elasticloadbalancing:*",
+          "ecs:*",
+          "elasticfilesystem:*"
         ],
         Resource = "*"
       },

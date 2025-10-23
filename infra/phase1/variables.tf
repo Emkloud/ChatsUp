@@ -149,3 +149,9 @@ variable "ecs_desired_count" {
   type    = number
   default = 1
 }
+
+# Toggle legacy API EC2 (to save cost, keep false)
+variable "create_legacy_api" {
+  type    = bool
+  default = false
+}

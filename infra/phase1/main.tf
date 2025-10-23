@@ -103,6 +103,7 @@ locals {
 }
 
 resource "aws_instance" "api" {
+  count                      = var.create_legacy_api ? 1 : 0
   ami                         = data.aws_ami.al2.id
   instance_type               = var.api_instance_type
   subnet_id                   = local.subnet_id
