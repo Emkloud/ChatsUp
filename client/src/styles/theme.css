@@ -1,0 +1,53 @@
+/* Theme tokens and backgrounds */
+:root {
+  --bg: #0f172a; /* slate-900 */
+  --bg-soft: #111827; /* gray-900 */
+  --surface: rgba(255,255,255,0.08);
+  --card: rgba(17,24,39,0.6);
+  --border: rgba(255,255,255,0.12);
+  --text: #e5e7eb; /* gray-200 */
+  --muted: #94a3b8; /* slate-400 */
+  --accent: #6366f1; /* indigo-500 */
+  --accent-2: #10b981; /* emerald-500 */
+}
+
+html, body, #root { height: 100%; }
+
+.app-bg {
+  min-height: 100vh;
+  color: var(--text);
+  background: radial-gradient(1200px 600px at -10% -10%, rgba(99,102,241,0.25), transparent 70%),
+              radial-gradient(1000px 500px at 110% -20%, rgba(16,185,129,0.25), transparent 70%),
+              linear-gradient(180deg, #0b1220 0%, #0f172a 60%);
+}
+
+.glass {
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+}
+
+.button-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  color: white;
+}
+
+.bubble-mine {
+  background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(16,185,129,0.12));
+  border: 1px solid rgba(16,185,129,0.25);
+}
+
+.bubble-theirs {
+  background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(99,102,241,0.12));
+  border: 1px solid rgba(99,102,241,0.25);
+}
+
+.input-glass {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.scroll-soft::-webkit-scrollbar { height: 8px; width: 8px; }
+.scroll-soft::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 9999px; }

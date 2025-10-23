@@ -1,0 +1,80 @@
+name: Deploy Phase1 (API+TURN+RDS)
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  AWS_ACCOUNT_ID: 288761765793
+  ECR_REPO: chatsapp-server
+  TF_WORKDIR: infra/phase1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::288761765793:role/gha-terraform-deployer
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push server image
+        working-directory: server
+        run: |
+          IMAGE_URI=${{ env.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPO }}:latest
+          docker build -t "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.7
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKDIR }}
+        run: terraform init -input=false
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKDIR }}
+        env:
+          TF_VAR_aws_region: us-east-1
+          TF_VAR_key_name: chats
+          TF_VAR_db_name: chatsapp
+          TF_VAR_db_username: chatsadmin
+          TF_VAR_db_password: Ch4tsApp-Prod123!
+          TF_VAR_turn_username: admin
+          TF_VAR_turn_password: admin123
+        run: |
+          terraform apply -auto-approve -input=false
+
+      - name: Put JWT secret into SSM
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          if [ -z "$JWT_SECRET" ]; then echo "JWT_SECRET repo secret not set" && exit 1; fi
+          aws ssm put-parameter --name /webrtc/JWT_SECRET --type SecureString --value "$JWT_SECRET" --overwrite --region $AWS_REGION
+
+      - name: Compute DATABASE_URL and store in SSM
+        run: |
+          ENDPOINT=$(aws rds describe-db-instances --query "DBInstances[?DBInstanceIdentifier=='webrtc-app-db'].Endpoint.Address" --output text --region $AWS_REGION)
+          DBURL="postgres://chatsadmin:Ch4tsApp-Prod123!@${ENDPOINT}:5432/chatsapp"
+          aws ssm put-parameter --name /webrtc/DATABASE_URL --type SecureString --value "$DBURL" --overwrite --region $AWS_REGION
+
+      - name: Output public IPs
+        working-directory: ${{ env.TF_WORKDIR }}
+        run: |
+          echo "API IP: $(terraform output -raw api_public_ip)"
+          echo "TURN IP: $(terraform output -raw turn_public_ip)"
