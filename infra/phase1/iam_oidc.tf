@@ -53,7 +53,18 @@ resource "aws_iam_role_policy" "gha_policy" {
       },
       {
         Effect   = "Allow",
-        Action   = ["ec2:*", "iam:*", "ssm:*", "logs:*", "sts:AssumeRole", "cloudwatch:*", "cloudformation:DescribeStacks", "cloudformation:DescribeStackResources"],
+        Action   = [
+          "ec2:*",
+          "iam:*",
+          "ssm:*",
+          "logs:*",
+          "sts:AssumeRole",
+          "cloudwatch:*",
+          "cloudformation:DescribeStacks",
+          "cloudformation:DescribeStackResources",
+          "rds:DescribeDBInstances",
+          "rds:DescribeDBSubnetGroups"
+        ],
         Resource = "*"
       },
       {
